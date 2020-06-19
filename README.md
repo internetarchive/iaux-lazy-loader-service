@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/internetarchive/iaux-lazy-loader-service.svg?branch=master)](https://travis-ci.com/internetarchive/iaux)
+[![Build Status](https://travis-ci.com/internetarchive/iaux-lazy-loader-service.svg?branch=master)](https://travis-ci.com/internetarchive/iaux) [![codecov](https://codecov.io/gh/internetarchive/iaux-lazy-loader-service/branch/master/graph/badge.svg)](https://codecov.io/gh/internetarchive/iaux-lazy-loader-service)
 
 # Lazy Loader Service
 
