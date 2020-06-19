@@ -6,7 +6,7 @@ An ES module to lazy load javascript. Based on the lazy loader from [Vaadin Rout
 
 ## Installation
 ```bash
-yarn add @internetarchive/lazy-loader-service
+npm install @internetarchive/lazy-loader-service
 ```
 
 ## Usage
@@ -70,25 +70,25 @@ await lazyLoaderService.loadScript({
 
 ## Prerequisite
 ```bash
-yarn install
+npm install
 ```
 
 ## Start Development Server
 ```bash
-yarn start
+npm start
 ```
 
 ## Testing
 ```bash
-yarn test
+npm test
 ```
 
 ## Testing via browserstack
 ```bash
-yarn test:bs
+npm test:bs
 ```
 
 ## Linting
 ```bash
-yarn lint
+npm lint
 ```
