@@ -7,7 +7,7 @@ module.exports = (config) => {
   config.set(
     merge(bsSettings(config), createBaseConfig(config), {
       browserStack: {
-        project: 'donation-form',
+        project: 'lazy-loader-service',
       },
     }),
   );
