@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/internetarchive/iaux-lazy-loader-service.svg?branch=master)](https://travis-ci.com/internetarchive/iaux)
+
 # Lazy Loader Service
 
 An ES module to lazy load javascript. Based on the lazy loader from [Vaadin Router](https://github.com/vaadin/vaadin-router).
