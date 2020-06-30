@@ -114,5 +114,69 @@ describe('Lazy Loader Service', () => {
       const typeAttribute = script.getAttribute('type');
       expect(typeAttribute).to.equal('module');
     });
+
+    // this is verifying that when a bunch of concurrent requests for a script get
+    // made, that they all get their completion blocks called
+    it('Calls multiple onloads if requested', async () => {
+      const container = await fixture(html`
+        <div></div>
+      `);
+      const lazyLoader = new LazyLoaderService(container);
+
+      const count = 25;
+
+      let loads = new Array(count).fill(false);
+
+      async function loadScript(number) {
+        await lazyLoader.loadScript({ src: '/base/test/foo.js' });
+        loads[number] = true;
+      }
+
+      const promises = [];
+      for (let i = 0; i < count; i++) {
+        const promise = loadScript(i);
+        promises.push(promise);
+      }
+
+      return Promise.all(promises).then((values) => {
+        for (let i = 0; i < count; i++) {
+          expect(loads[i]).to.equal(true);
+        }
+      });
+    });
+
+    // this is verifying that when a bunch of concurrent requests for a script get
+    // made, that they all get their completion blocks called
+    it('Calls multiple onerrors if requested', async () => {
+      const container = await fixture(html`
+        <div></div>
+      `);
+      const lazyLoader = new LazyLoaderService(container);
+
+      const count = 25;
+
+      let loadFailed = new Array(count).fill(false);
+
+      async function loadScript(number) {
+        try {
+          await lazyLoader.loadScript({ src: '/base/test/blahblah.js' });
+        } catch {
+          // we're expecting a failure here so this is successful
+          loadFailed[number] = true;
+        }
+      }
+
+      const promises = [];
+      for (let i = 0; i < count; i++) {
+        const promise = loadScript(i);
+        promises.push(promise);
+      }
+
+      return Promise.all(promises).then((values) => {
+        for (let i = 0; i < count; i++) {
+          expect(loadFailed[i]).to.equal(true);
+        }
+      });
+    });
   });
 });

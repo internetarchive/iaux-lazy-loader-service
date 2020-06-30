@@ -115,26 +115,28 @@ export class LazyLoaderService {
     return new Promise((resolve, reject) => {
       // if multiple requests get made for this script, just stack the onloads
       // and onerrors and all the callbacks will be called in-order of being received
-      const originalOnLoad: ((ev: Event) => any) | null = script.onload;
-      script.onload = (e) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const originalOnLoad: ((event: Event) => any) | null = script.onload;
+      script.onload = (event) => {
         if (originalOnLoad) {
-          originalOnLoad(e);
+          originalOnLoad(event);
         }
         script.setAttribute('dynamicImportLoaded', 'true');
-        resolve(e);
+        resolve(event);
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const originalOnError: ((error: string | Event) => any) | null = script.onerror;
-      script.onerror = (e) => {
+      script.onerror = (error) => {
         if (originalOnError) {
-          originalOnError(e);
+          originalOnError(error);
         }
 
         /* istanbul ignore else */
         if (script.parentNode) {
           script.parentNode.removeChild(script);
         }
-        reject(e);
+        reject(error);
       };
 
       if (script.parentNode === null) {
