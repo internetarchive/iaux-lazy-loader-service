@@ -113,12 +113,23 @@ export class LazyLoaderService {
     }
 
     return new Promise((resolve, reject) => {
+      // if multiple requests get made for this script, just stack the onloads
+      // and onerrors and all the callbacks will be called in-order of being received
+      const originalOnLoad: ((ev: Event) => any) | null = script.onload;
       script.onload = (e) => {
+        if (originalOnLoad) {
+          originalOnLoad(e);
+        }
         script.setAttribute('dynamicImportLoaded', 'true');
         resolve(e);
       };
 
+      const originalOnError: ((error: string | Event) => any) | null = script.onerror;
       script.onerror = (e) => {
+        if (originalOnError) {
+          originalOnError(e);
+        }
+
         /* istanbul ignore else */
         if (script.parentNode) {
           script.parentNode.removeChild(script);
