@@ -47,13 +47,10 @@
     );
 
     async function loadScript() {
-      console.debug('boop');
       await lazyLoaderService.loadScript({ src: 'test.js' });
-      console.debug('window', window.testService);
       const response = window.testService.getResponse();
       const div = document.querySelector('#lazy-response');
       div.innerHTML = response;
-      console.log('RESPONSE', response);
     }
   </script>
 </body>
