@@ -8,6 +8,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "start": "concurrently --kill-others --names tsc,es-dev-server \"npm run tsc:watch\" \"es-dev-server --app-index demo/index.html --node-resolve --open --watch\"",
+    "docs": "typedoc",
     "tsc:watch": "tsc --watch",
     "lint:eslint": "eslint --ext .ts,.html . --ignore-path .gitignore",
     "format:eslint": "eslint --ext .ts,.html . --fix --ignore-path .gitignore",
@@ -20,23 +21,24 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "lit-html": "^1.1.2",
-    "@types/node": "13.11.1",
-    "es-dev-server": "^1.23.0",
-    "typescript": "~3.8.2",
-    "concurrently": "^5.1.0",
-    "tslib": "^1.11.0",
-    "eslint": "^6.1.0",
     "@open-wc/eslint-config": "^2.0.0",
+    "@open-wc/testing": "^2.0.0",
+    "@open-wc/testing-karma": "^3.0.0",
+    "@types/node": "13.11.1",
     "@typescript-eslint/eslint-plugin": "^2.20.0",
     "@typescript-eslint/parser": "^2.20.0",
-    "prettier": "^2.0.4",
+    "concurrently": "^5.1.0",
+    "deepmerge": "^3.2.0",
+    "es-dev-server": "^1.23.0",
+    "eslint": "^6.1.0",
     "eslint-config-prettier": "^6.11.0",
     "husky": "^1.0.0",
     "lint-staged": "^8.0.0",
-    "@open-wc/testing-karma": "^3.0.0",
-    "deepmerge": "^3.2.0",
-    "@open-wc/testing": "^2.0.0"
+    "lit-html": "^1.1.2",
+    "prettier": "^2.0.4",
+    "tslib": "^1.11.0",
+    "typedoc": "^0.17.8",
+    "typescript": "~3.8.2"
   },
   "eslintConfig": {
     "extends": [
