@@ -1,52 +1,10 @@
-export enum BundleType {
-  Module = 'module',
-  NoModule = 'nomodule'
-}
+import { BundleType } from './bundle-type';
+import { LazyLoaderServiceInterface } from './lazy-loader-service-interface';
 
-export interface LazyLoaderServiceInterface {
-  /**
-   * Load a javascript bundle (module and nomodule pair)
-   *
-   * eg:
-   *
-   * lazyLoaderService.loadBundle({
-   *   module: 'https://my-server.com/module.js',
-   *   nomodule: 'https://my-server.com/no-module.js'
-   * });
-   *
-   * @param bundle
-   */
-  loadBundle(bundle: {
-    module?: string;
-    nomodule?: string;
-  }): Promise<Event | undefined>;
-
-  /**
-   * Load a script with a Promise
-   *
-   * eg.
-   *
-   * lazyLoaderService.loadScript({
-   *   src: 'https://my-server.com/script.js'
-   * });
-   *
-   *
-   * @param options
-   */
-  loadScript(options: {
-    src: string;
-    bundleType?: BundleType;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    attributes?: { key: string; value: any }[];
-  }): Promise<Event>;
-}
-
-export class LazyLoaderService {
+export class LazyLoaderService implements LazyLoaderServiceInterface {
   private container: HTMLElement;
 
-  constructor(
-    container: HTMLElement = document.head
-  ) {
+  constructor(container: HTMLElement = document.head) {
     this.container = container;
   }
 
@@ -62,7 +20,7 @@ export class LazyLoaderService {
     if (bundle.module) {
       modulePromise = this.loadScript({
         src: bundle.module,
-        bundleType: BundleType.Module
+        bundleType: BundleType.Module,
       });
     }
 
@@ -70,7 +28,7 @@ export class LazyLoaderService {
     if (bundle.nomodule) {
       nomodulePromise = this.loadScript({
         src: bundle.nomodule,
-        bundleType: BundleType.NoModule
+        bundleType: BundleType.NoModule,
       });
     }
 
@@ -85,7 +43,9 @@ export class LazyLoaderService {
     attributes?: { key: string; value: any }[];
   }): Promise<Event> {
     const scriptSelector = `script[src='${options.src}'][async]`;
-    let script = this.container.querySelector(scriptSelector) as HTMLScriptElement;
+    let script = this.container.querySelector(
+      scriptSelector
+    ) as HTMLScriptElement;
     if (!script) {
       script = document.createElement('script') as HTMLScriptElement;
       script.setAttribute('src', options.src);
@@ -103,7 +63,8 @@ export class LazyLoaderService {
         case BundleType.Module:
           script.setAttribute('type', options.bundleType);
           break;
-        /* istanbul ignore next */ // cannot be tested because modern browsers ignore `nomodule`
+        // cannot be tested because modern browsers ignore `nomodule`
+        /* istanbul ignore next */
         case BundleType.NoModule:
           script.setAttribute(options.bundleType, '');
           break;
@@ -117,7 +78,7 @@ export class LazyLoaderService {
       // and onerrors and all the callbacks will be called in-order of being received
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const originalOnLoad: ((event: Event) => any) | null = script.onload;
-      script.onload = (event) => {
+      script.onload = (event): void => {
         if (originalOnLoad) {
           originalOnLoad(event);
         }
@@ -126,8 +87,9 @@ export class LazyLoaderService {
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const originalOnError: ((error: string | Event) => any) | null = script.onerror;
-      script.onerror = (error) => {
+      const originalOnError: ((error: string | Event) => any) | null =
+        script.onerror;
+      script.onerror = (error): void => {
         if (originalOnError) {
           originalOnError(error);
         }

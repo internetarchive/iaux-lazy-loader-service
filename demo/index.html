@@ -23,9 +23,17 @@
 
   <script type="module">
     import { html, render } from 'lit-html';
-    import { LazyLoaderService } from '../lib/lazy-loader-service.js';
+    import { LazyLoaderService } from '../dist/src/lazy-loader-service.js';
 
     const lazyLoaderService = new LazyLoaderService();
+
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    async function loadScript() {
+      await lazyLoaderService.loadScript({ src: 'test.js' });
+      const response = window.testService.getResponse();
+      const div = document.querySelector('#lazy-response');
+      div.innerHTML = response;
+    }
 
     render(
       html`
@@ -45,13 +53,6 @@
       `,
       document.querySelector('#demo')
     );
-
-    async function loadScript() {
-      await lazyLoaderService.loadScript({ src: 'test.js' });
-      const response = window.testService.getResponse();
-      const div = document.querySelector('#lazy-response');
-      div.innerHTML = response;
-    }
   </script>
 </body>
 </html>

@@ -1,32 +1,24 @@
-import {
-  expect, fixture, html
-} from '@open-wc/testing';
+import { expect, fixture, html } from '@open-wc/testing';
+import { LazyLoaderService } from '../src/lazy-loader-service';
+import { BundleType } from '../src/bundle-type';
 
-import { LazyLoaderService } from '../lib/lazy-loader-service';
+const testServiceUrl = '/base/dist/test/test-service.js';
 
 describe('Lazy Loader Service', () => {
   it('Initialized by default with document.head', async () => {
     const lazyLoader = new LazyLoaderService();
-    expect(lazyLoader.container).to.equal(document.head);
-  });
-
-  it('Can be initialized with a container', async () => {
-    const container = await fixture(html`
-      <div></div>
-    `);
-    const lazyLoader = new LazyLoaderService(container);
-    expect(lazyLoader.container).to.equal(container);
+    await lazyLoader.loadScript({ src: testServiceUrl });
+    const scripts = document.head.querySelectorAll('script');
+    expect(scripts.length).to.equal(1);
   });
 
   describe('loadBundle', () => {
     it('Can load bundles', async () => {
-      const container = await fixture(html`
-        <div></div>
-      `);
+      const container = (await fixture(html` <div></div> `)) as HTMLElement;
       const lazyLoader = new LazyLoaderService(container);
       await lazyLoader.loadBundle({
-        module: '/base/test/foo.js',
-        nomodule: '/base/test/foo.js'
+        module: testServiceUrl,
+        nomodule: testServiceUrl,
       });
 
       const scripts = container.querySelectorAll('script');
@@ -36,21 +28,17 @@ describe('Lazy Loader Service', () => {
 
   describe('loadScript', () => {
     it('Creates proper script tags in container', async () => {
-      const container = await fixture(html`
-        <div></div>
-      `);
+      const container = (await fixture(html` <div></div> `)) as HTMLElement;
       const lazyLoader = new LazyLoaderService(container);
 
-      await lazyLoader.loadScript({ src: '/base/test/foo.js' });
+      await lazyLoader.loadScript({ src: testServiceUrl });
 
       const scripts = container.querySelectorAll('script');
       expect(scripts.length).to.equal(1);
     });
 
     it('Removes the script tag if the load fails', async () => {
-      const container = await fixture(html`
-        <div></div>
-      `);
+      const container = (await fixture(html` <div></div> `)) as HTMLElement;
       const lazyLoader = new LazyLoaderService(container);
 
       try {
@@ -64,71 +52,65 @@ describe('Lazy Loader Service', () => {
     });
 
     it('Only loads scripts once if called multiple times', async () => {
-      const container = await fixture(html`
-        <div></div>
-      `);
+      const container = (await fixture(html` <div></div> `)) as HTMLElement;
       const lazyLoader = new LazyLoaderService(container);
 
-      await lazyLoader.loadScript({ src: '/base/test/foo.js' });
-      await lazyLoader.loadScript({ src: '/base/test/foo.js' });
-      await lazyLoader.loadScript({ src: '/base/test/foo.js' });
+      await lazyLoader.loadScript({ src: testServiceUrl });
+      await lazyLoader.loadScript({ src: testServiceUrl });
+      await lazyLoader.loadScript({ src: testServiceUrl });
 
       const scripts = container.querySelectorAll('script');
       expect(scripts.length).to.equal(1);
     });
 
     it('Loaded script is usable', async () => {
-      const container = await fixture(html`
-        <div></div>
-      `);
+      const container = (await fixture(html` <div></div> `)) as HTMLElement;
       const lazyLoader = new LazyLoaderService(container);
-      await lazyLoader.loadScript({ src: '/base/test/foo.js' });
+      await lazyLoader.loadScript({ src: testServiceUrl });
 
-      const result = window.testService.getResponse();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = (window as any).testService.getResponse();
       expect(result).to.equal('someresponse');
     });
 
     it('Can pass in attributes', async () => {
-      const container = await fixture(html`
-        <div></div>
-      `);
+      const container = (await fixture(html` <div></div> `)) as HTMLElement;
       const lazyLoader = new LazyLoaderService(container);
       await lazyLoader.loadScript({
-        src: '/base/test/foo.js',
-        attributes: [{ key: 'foo', value: 'bar' }]
+        src: testServiceUrl,
+        attributes: [{ key: 'foo', value: 'bar' }],
       });
 
       const script = container.querySelector('script');
-      const fooAttribute = script.getAttribute('foo');
+      const fooAttribute = script?.getAttribute('foo');
       expect(fooAttribute).to.equal('bar');
     });
 
     it('Can load modules', async () => {
-      const container = await fixture(html`
-        <div></div>
-      `);
+      const container = (await fixture(html` <div></div> `)) as HTMLElement;
       const lazyLoader = new LazyLoaderService(container);
-      await lazyLoader.loadScript({ src: '/base/test/foo.js', bundleType: 'module' });
+      await lazyLoader.loadScript({
+        src: testServiceUrl,
+        bundleType: BundleType.Module,
+      });
 
       const script = container.querySelector('script');
-      const typeAttribute = script.getAttribute('type');
+      const typeAttribute = script?.getAttribute('type');
       expect(typeAttribute).to.equal('module');
     });
 
     // this is verifying that when a bunch of concurrent requests for a script get
     // made, that they all get their completion blocks called
     it('Calls multiple onloads if requested', async () => {
-      const container = await fixture(html`
-        <div></div>
-      `);
+      const container = (await fixture(html` <div></div> `)) as HTMLElement;
       const lazyLoader = new LazyLoaderService(container);
 
       const count = 25;
 
-      let loads = new Array(count).fill(false);
+      const loads = new Array(count).fill(false);
 
-      async function loadScript(number) {
-        await lazyLoader.loadScript({ src: '/base/test/foo.js' });
+      async function loadScript(number: number): Promise<void> {
+        await lazyLoader.loadScript({ src: testServiceUrl });
         loads[number] = true;
       }
 
@@ -138,7 +120,7 @@ describe('Lazy Loader Service', () => {
         promises.push(promise);
       }
 
-      return Promise.all(promises).then((values) => {
+      return Promise.all(promises).then(() => {
         for (let i = 0; i < count; i++) {
           expect(loads[i]).to.equal(true);
         }
@@ -148,16 +130,14 @@ describe('Lazy Loader Service', () => {
     // this is verifying that when a bunch of concurrent requests for a script get
     // made, that they all get their completion blocks called
     it('Calls multiple onerrors if requested', async () => {
-      const container = await fixture(html`
-        <div></div>
-      `);
+      const container = (await fixture(html` <div></div> `)) as HTMLElement;
       const lazyLoader = new LazyLoaderService(container);
 
       const count = 25;
 
-      let loadFailed = new Array(count).fill(false);
+      const loadFailed = new Array(count).fill(false);
 
-      async function loadScript(number) {
+      async function loadScript(number: number): Promise<void> {
         try {
           await lazyLoader.loadScript({ src: '/base/test/blahblah.js' });
         } catch {
@@ -172,7 +152,7 @@ describe('Lazy Loader Service', () => {
         promises.push(promise);
       }
 
-      return Promise.all(promises).then((values) => {
+      return Promise.all(promises).then(() => {
         for (let i = 0; i < count; i++) {
           expect(loadFailed[i]).to.equal(true);
         }
