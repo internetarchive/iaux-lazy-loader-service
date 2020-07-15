@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    #demo {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="demo">
+  </div>
+
+  <script type="module">
+    import { html, render } from 'lit-html';
+    import { LazyLoaderService } from '../dist/src/lazy-loader-service.js';
+
+    const lazyLoaderService = new LazyLoaderService();
+
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    async function loadScript() {
+      await lazyLoaderService.loadScript({ src: 'test.js' });
+      const response = window.testService.getResponse();
+      const div = document.querySelector('#lazy-response');
+      div.innerHTML = response;
+    }
+
+    render(
+      html`
+        <h1>Lazy Loader Service</h1>
+        <p>Lazy load external scripts and wait for them to load with promise-like funcitonality.</p>
+        <pre>
+          const lazyLoaderService = new LazyLoaderService();
+          await lazyLoaderService.loadScript({ src: 'https://yourserver.com/some-library.js' });
+          window.someLibrary.foo();
+        </pre>
+        <center>
+          <button @click=${loadScript}>Lazy Load Script</button>
+          <p>(inspect the page head tag before and after pushing this)</p>
+          <div>Response:</div>
+          <div id="lazy-response"></div>
+        </center>
+      `,
+      document.querySelector('#demo')
+    );
+  </script>
+</body>
+</html>
