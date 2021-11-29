@@ -33,7 +33,6 @@ export interface LazyLoaderServiceInterface {
   loadScript(options: {
     src: string;
     bundleType?: BundleType;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    attributes?: { key: string; value: any }[];
-  }): Promise<Event>;
+    attributes?: Record<string, string>;
+  }): Promise<Event | undefined>;
 }

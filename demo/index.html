@@ -29,11 +29,20 @@
 
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     async function loadScript() {
-      await lazyLoaderService.loadScript({ src: 'test.js' });
+      await lazyLoaderService.loadScript({ src: "test.js" });
       const response = window.testService.getResponse();
       const div = document.querySelector('#lazy-response');
       div.innerHTML = response;
     }
+
+            async function reloadScript() {
+              const script = document.querySelector('head').querySelector('script');
+              console.debug('script', script);
+              // script.src = '';
+              // script.src = script.src;
+              script.remove();
+              loadScript();
+            }
 
     render(
       html`
@@ -46,6 +55,7 @@
         </pre>
         <center>
           <button @click=${loadScript}>Lazy Load Script</button>
+          <button @click=${reloadScript}>Reload Script</button>
           <p>(inspect the page head tag before and after pushing this)</p>
           <div>Response:</div>
           <div id="lazy-response"></div>
