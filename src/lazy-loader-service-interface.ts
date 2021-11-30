@@ -13,10 +13,7 @@ export interface LazyLoaderServiceInterface {
    *
    * @param bundle
    */
-  loadBundle(bundle: {
-    module?: string;
-    nomodule?: string;
-  }): Promise<Event | undefined>;
+  loadBundle(bundle: { module?: string; nomodule?: string }): Promise<void>;
 
   /**
    * Load a script with a Promise
@@ -35,5 +32,5 @@ export interface LazyLoaderServiceInterface {
     bundleType?: BundleType;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     attributes?: Record<string, string>;
-  }): Promise<Event | undefined>;
+  }): Promise<void>;
 }

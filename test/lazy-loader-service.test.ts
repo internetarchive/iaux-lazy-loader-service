@@ -117,7 +117,10 @@ describe('Lazy Loader Service', () => {
     // made, that they all get their completion blocks called
     it('Calls multiple onerrors if requested', async () => {
       const container = (await fixture(html` <div></div> `)) as HTMLElement;
-      const lazyLoader = new LazyLoaderService({ container });
+      const lazyLoader = new LazyLoaderService({
+        container,
+        retryInterval: 0.1,
+      });
 
       const count = 25;
 
