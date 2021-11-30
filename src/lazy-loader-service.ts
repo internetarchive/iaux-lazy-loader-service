@@ -113,9 +113,8 @@ export class LazyLoaderService implements LazyLoaderServiceInterface {
         }
       };
 
-      if (script.parentNode === null) {
-        this.container.appendChild(script);
-      } else if (script.getAttribute('dynamicImportLoaded')) {
+      // script has already been loaded, just resolve
+      if (script.getAttribute('dynamicImportLoaded')) {
         resolve();
       }
     });
