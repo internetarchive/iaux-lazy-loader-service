@@ -146,5 +146,38 @@ describe('Lazy Loader Service', () => {
         }
       });
     });
+
+    /**
+     * This is a special test that connects to a sidecar node server to test retrying a request.
+     *
+     * In `npm run test`, we run `test/test-server.js` while we're running our tests.
+     * `test-server.js` has a very specific purpose:
+     *
+     * The very first request will always return an HTTP 404, the second request returns a HTTP 200,
+     * then it shuts down.
+     *
+     * This lets us check that a failed request gets retried successfully.
+     */
+    it('Can retry a reqest', async () => {
+      const serverUrl = 'http://localhost:5432/';
+      const container = (await fixture(html` <div></div> `)) as HTMLElement;
+      const lazyLoader = new LazyLoaderService({
+        container,
+        retryCount: 1,
+        retryInterval: 0.1,
+      });
+      await lazyLoader.loadScript({ src: serverUrl });
+
+      // verify we have two script tags with the expected url and a propery retryCount on each
+      const scriptTags = container.querySelectorAll('script');
+      scriptTags.forEach((tag, index) => {
+        expect(tag.src).to.equal(serverUrl);
+        expect(tag.getAttribute('retryCount'), `${index}`);
+      });
+
+      // verify the final load actually loaded the service
+      const result = (window as any).otherService.getResponse();
+      expect(result).to.equal('someotherresponse');
+    });
   });
 });
