@@ -9,12 +9,12 @@ export class LazyLoaderService implements LazyLoaderServiceInterface {
   }
 
   /** @inheritdoc */
-  loadBundle(bundle: {
+  async loadBundle(bundle: {
     module?: string;
     nomodule?: string;
   }): Promise<Event | undefined> {
-    let modulePromise: Promise<Event> | undefined;
-    let nomodulePromise: Promise<Event> | undefined;
+    let modulePromise: Promise<Event | undefined> | undefined;
+    let nomodulePromise: Promise<Event | undefined> | undefined;
 
     /* istanbul ignore else */
     if (bundle.module) {
@@ -36,12 +36,12 @@ export class LazyLoaderService implements LazyLoaderServiceInterface {
   }
 
   /** @inheritdoc */
-  loadScript(options: {
+  async loadScript(options: {
     src: string;
     bundleType?: BundleType;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     attributes?: { key: string; value: any }[];
-  }): Promise<Event> {
+  }): Promise<Event | undefined> {
     const scriptSelector = `script[src='${options.src}'][async]`;
     let script = this.container.querySelector(
       scriptSelector
@@ -104,7 +104,7 @@ export class LazyLoaderService implements LazyLoaderServiceInterface {
       if (script.parentNode === null) {
         this.container.appendChild(script);
       } else if (script.getAttribute('dynamicImportLoaded')) {
-        resolve();
+        resolve(undefined);
       }
     });
   }
