@@ -1,22 +1,40 @@
-import { BundleType } from './bundle-type';
+import type { BundleType } from './bundle-type';
 import { LazyLoaderServiceInterface } from './lazy-loader-service-interface';
 import { promisedSleep } from './promised-sleep';
 
-export class LazyLoaderService implements LazyLoaderServiceInterface {
-  private container: HTMLElement;
-
-  private retryCount: number;
+export interface LazyLoaderServiceOptions {
+  /**
+   * The HTMLElement in which we put the script tags, defaults to document.head
+   */
+  container?: HTMLElement;
 
   /**
-   * In seconds
+   * The number of retries we should attempt
    */
+  retryCount?: number;
+
+  /**
+   * The retry interval in seconds
+   */
+  retryInterval?: number;
+}
+
+export class LazyLoaderService implements LazyLoaderServiceInterface {
+  // the HTMLElement in which we put the script tags, defaults to document.head
+  private container: HTMLElement;
+
+  // the number of retries we should attempt
+  private retryCount: number;
+
+  // the retry interval in seconds
   private retryInterval: number;
 
-  constructor(options?: {
-    container?: HTMLElement;
-    retryCount?: number;
-    retryInterval?: number;
-  }) {
+  /**
+   * LazyLoaderService constructor
+   *
+   * @param options LazyLoaderServiceOptions
+   */
+  constructor(options?: LazyLoaderServiceOptions) {
     this.container = options?.container ?? document.head;
     this.retryCount = options?.retryCount ?? 2;
     this.retryInterval = options?.retryInterval ?? 1;
@@ -34,7 +52,7 @@ export class LazyLoaderService implements LazyLoaderServiceInterface {
     if (bundle.module) {
       modulePromise = this.loadScript({
         src: bundle.module,
-        bundleType: BundleType.Module,
+        bundleType: 'module',
       });
     }
 
@@ -42,7 +60,7 @@ export class LazyLoaderService implements LazyLoaderServiceInterface {
     if (bundle.nomodule) {
       nomodulePromise = this.loadScript({
         src: bundle.nomodule,
-        bundleType: BundleType.NoModule,
+        bundleType: 'nomodule',
       });
     }
 
@@ -76,6 +94,12 @@ export class LazyLoaderService implements LazyLoaderServiceInterface {
     }
 
     return new Promise((resolve, reject) => {
+      // script has already been loaded, just resolve
+      if (script.getAttribute('dynamicImportLoaded')) {
+        resolve();
+        return;
+      }
+
       const scriptBeingRetried = options.scriptBeingRetried;
 
       // If multiple requests get made for this script, just stack the `onload`s
@@ -92,10 +116,8 @@ export class LazyLoaderService implements LazyLoaderServiceInterface {
         resolve();
       };
 
-      const originalOnError:
-        | OnErrorEventHandler // eslint-disable-line @typescript-eslint/no-explicit-any
-        | null
-        | undefined = script.onerror || scriptBeingRetried?.onerror;
+      const originalOnError: OnErrorEventHandler | null | undefined =
+        script.onerror || scriptBeingRetried?.onerror;
 
       script.onerror = async (error): Promise<void> => {
         const hasBeenRetried = script.getAttribute('hasBeenRetried');
@@ -112,14 +134,15 @@ export class LazyLoaderService implements LazyLoaderServiceInterface {
           reject(error);
         }
       };
-
-      // script has already been loaded, just resolve
-      if (script.getAttribute('dynamicImportLoaded')) {
-        resolve();
-      }
     });
   }
 
+  /**
+   * Generate a script tag with all of the proper attributes
+   *
+   * @param options
+   * @returns
+   */
   private getScriptTag(options: {
     src: string;
     retryCount?: number;
@@ -139,12 +162,12 @@ export class LazyLoaderService implements LazyLoaderServiceInterface {
     });
 
     switch (options.bundleType) {
-      case BundleType.Module:
+      case 'module':
         script.setAttribute('type', options.bundleType);
         break;
       // cannot be tested because modern browsers ignore `nomodule`
       /* istanbul ignore next */
-      case BundleType.NoModule:
+      case 'nomodule':
         script.setAttribute(options.bundleType, '');
         break;
       default:

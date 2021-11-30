@@ -1,4 +1,1 @@
-export enum BundleType {
-  Module = 'module',
-  NoModule = 'nomodule',
-}
+export type BundleType = 'module' | 'nomodule';

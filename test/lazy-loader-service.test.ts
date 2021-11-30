@@ -1,6 +1,5 @@
 import { expect, fixture, html } from '@open-wc/testing';
 import { LazyLoaderService } from '../src/lazy-loader-service';
-import { BundleType } from '../src/bundle-type';
 
 const testServiceUrl = '/base/dist/test/test-service.js';
 
@@ -77,7 +76,7 @@ describe('Lazy Loader Service', () => {
       const lazyLoader = new LazyLoaderService({ container });
       await lazyLoader.loadScript({
         src: testServiceUrl,
-        bundleType: BundleType.Module,
+        bundleType: 'module',
       });
 
       const script = container.querySelector('script');
