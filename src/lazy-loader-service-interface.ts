@@ -35,5 +35,5 @@ export interface LazyLoaderServiceInterface {
     bundleType?: BundleType;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     attributes?: { key: string; value: any }[];
-  }): Promise<Event>;
+  }): Promise<Event | undefined>;
 }
