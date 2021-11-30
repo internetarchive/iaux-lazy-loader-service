@@ -4,8 +4,11 @@ import { LazyLoaderServiceInterface } from './lazy-loader-service-interface';
 export class LazyLoaderService implements LazyLoaderServiceInterface {
   private container: HTMLElement;
 
-  constructor(container: HTMLElement = document.head) {
-    this.container = container;
+  private retryCount: number;
+
+  constructor(options?: { container?: HTMLElement; retryCount?: number }) {
+    this.container = options?.container ?? document.head;
+    this.retryCount = options?.retryCount ?? 2;
   }
 
   /** @inheritdoc */
@@ -41,17 +44,16 @@ export class LazyLoaderService implements LazyLoaderServiceInterface {
     bundleType?: BundleType;
     attributes?: Record<string, string>;
   }): Promise<Event | undefined> {
-    return this.doActualLoad(options);
+    return this.doLoad(options);
   }
 
-  private async doActualLoad(options: {
+  private async doLoad(options: {
     src: string;
     bundleType?: BundleType;
     attributes?: Record<string, string>;
     retryCount?: number;
     originalElement?: HTMLScriptElement;
   }): Promise<Event | undefined> {
-    console.debug('doActualLoad', options);
     const retryCount = options.retryCount ?? 0;
     const scriptSelector = `script[src='${options.src}'][async][retryCount='${retryCount}']`;
     let script = this.container.querySelector(
@@ -61,52 +63,38 @@ export class LazyLoaderService implements LazyLoaderServiceInterface {
       script = this.getScriptTag(options);
       this.container.appendChild(script);
     }
-    console.debug('selector, script', scriptSelector, script);
 
     return new Promise((resolve, reject) => {
-      // if multiple requests get made for this script, just stack the onloads
-      // and onerrors and all the callbacks will be called in-order of being received
+      const originalElement = options.originalElement;
+
+      // If multiple requests get made for this script, just stack the `onload`s
+      // and `onerror`s and all the callbacks will be called in-order of being received.
+      // If we are retrying the load, we use the `onload` / `onerror` from the original element
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const originalOnLoad: ((event: Event) => any) | null | undefined =
-        script.onload || options.originalElement?.onload;
-      console.debug(
-        'assigning onload',
-        originalOnLoad,
-        script.onload,
-        options.originalElement?.onload
-      );
+        script.onload || originalElement?.onload;
       script.onload = (event): void => {
         originalOnLoad?.(event);
         script.setAttribute('dynamicImportLoaded', 'true');
         resolve(event);
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const originalOnError:
-        | ((error: string | Event) => any)
+        | ((error: string | Event) => any) // eslint-disable-line @typescript-eslint/no-explicit-any
         | null
-        | undefined = script.onerror || options.originalElement?.onerror;
-      console.debug(
-        'assigning onerror',
-        originalOnError,
-        script.onerror,
-        options.originalElement?.onerror
-      );
+        | undefined = script.onerror || originalElement?.onerror;
       script.onerror = (error): void => {
-        console.debug('onerror callback', retryCount);
         const hasBeenRetried = script.getAttribute('hasBeenRetried');
-        if (retryCount < 1 && !hasBeenRetried) {
+        if (retryCount < 2 && !hasBeenRetried) {
           script.setAttribute('hasBeenRetried', 'true');
-          console.debug('retrying actual load', retryCount);
-          this.doActualLoad({
+          this.doLoad({
             ...options,
             retryCount: retryCount + 1,
             originalElement: script,
           });
         } else {
-          console.debug('rejecting', retryCount);
           originalOnError?.(error);
-          // script.parentNode?.removeChild(script);
           reject(error);
         }
       };

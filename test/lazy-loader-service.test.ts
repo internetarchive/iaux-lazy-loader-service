@@ -15,7 +15,7 @@ describe('Lazy Loader Service', () => {
   describe('loadBundle', () => {
     it('Can load bundles', async () => {
       const container = (await fixture(html` <div></div> `)) as HTMLElement;
-      const lazyLoader = new LazyLoaderService(container);
+      const lazyLoader = new LazyLoaderService({ container });
       await lazyLoader.loadBundle({
         module: testServiceUrl,
         nomodule: testServiceUrl,
@@ -29,7 +29,7 @@ describe('Lazy Loader Service', () => {
   describe('loadScript', () => {
     it('Creates proper script tags in container', async () => {
       const container = (await fixture(html` <div></div> `)) as HTMLElement;
-      const lazyLoader = new LazyLoaderService(container);
+      const lazyLoader = new LazyLoaderService({ container });
 
       await lazyLoader.loadScript({ src: testServiceUrl });
 
@@ -39,7 +39,7 @@ describe('Lazy Loader Service', () => {
 
     it('Only loads scripts once if called multiple times', async () => {
       const container = (await fixture(html` <div></div> `)) as HTMLElement;
-      const lazyLoader = new LazyLoaderService(container);
+      const lazyLoader = new LazyLoaderService({ container });
 
       await lazyLoader.loadScript({ src: testServiceUrl });
       await lazyLoader.loadScript({ src: testServiceUrl });
@@ -51,7 +51,7 @@ describe('Lazy Loader Service', () => {
 
     it('Loaded script is usable', async () => {
       const container = (await fixture(html` <div></div> `)) as HTMLElement;
-      const lazyLoader = new LazyLoaderService(container);
+      const lazyLoader = new LazyLoaderService({ container });
       await lazyLoader.loadScript({ src: testServiceUrl });
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -61,7 +61,7 @@ describe('Lazy Loader Service', () => {
 
     it('Can pass in attributes', async () => {
       const container = (await fixture(html` <div></div> `)) as HTMLElement;
-      const lazyLoader = new LazyLoaderService(container);
+      const lazyLoader = new LazyLoaderService({ container });
       await lazyLoader.loadScript({
         src: testServiceUrl,
         attributes: { foo: 'bar' },
@@ -74,7 +74,7 @@ describe('Lazy Loader Service', () => {
 
     it('Can load modules', async () => {
       const container = (await fixture(html` <div></div> `)) as HTMLElement;
-      const lazyLoader = new LazyLoaderService(container);
+      const lazyLoader = new LazyLoaderService({ container });
       await lazyLoader.loadScript({
         src: testServiceUrl,
         bundleType: BundleType.Module,
@@ -89,7 +89,7 @@ describe('Lazy Loader Service', () => {
     // made, that they all get their completion blocks called
     it('Calls multiple onloads if requested', async () => {
       const container = (await fixture(html` <div></div> `)) as HTMLElement;
-      const lazyLoader = new LazyLoaderService(container);
+      const lazyLoader = new LazyLoaderService({ container });
 
       const count = 25;
 
@@ -117,7 +117,7 @@ describe('Lazy Loader Service', () => {
     // made, that they all get their completion blocks called
     it('Calls multiple onerrors if requested', async () => {
       const container = (await fixture(html` <div></div> `)) as HTMLElement;
-      const lazyLoader = new LazyLoaderService(container);
+      const lazyLoader = new LazyLoaderService({ container });
 
       const count = 25;
 
