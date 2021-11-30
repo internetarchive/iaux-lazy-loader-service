@@ -37,20 +37,6 @@ describe('Lazy Loader Service', () => {
       expect(scripts.length).to.equal(1);
     });
 
-    it('Removes the script tag if the load fails', async () => {
-      const container = (await fixture(html` <div></div> `)) as HTMLElement;
-      const lazyLoader = new LazyLoaderService(container);
-
-      try {
-        await lazyLoader.loadScript({ src: './blahblahnotfound.js' });
-      } catch {
-        // expected failure
-      }
-
-      const scripts = container.querySelectorAll('script');
-      expect(scripts.length).to.equal(0);
-    });
-
     it('Only loads scripts once if called multiple times', async () => {
       const container = (await fixture(html` <div></div> `)) as HTMLElement;
       const lazyLoader = new LazyLoaderService(container);
@@ -78,7 +64,7 @@ describe('Lazy Loader Service', () => {
       const lazyLoader = new LazyLoaderService(container);
       await lazyLoader.loadScript({
         src: testServiceUrl,
-        attributes: [{ key: 'foo', value: 'bar' }],
+        attributes: { foo: 'bar' },
       });
 
       const script = container.querySelector('script');
