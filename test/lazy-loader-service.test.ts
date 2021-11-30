@@ -176,6 +176,7 @@ describe('Lazy Loader Service', () => {
       });
 
       // verify the final load actually loaded the service
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = (window as any).otherService.getResponse();
       expect(result).to.equal('someotherresponse');
     });

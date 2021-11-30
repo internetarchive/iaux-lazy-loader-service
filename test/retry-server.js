@@ -1,6 +1,5 @@
 const http = require('http');
 const fs = require('fs');
-const { exit } = require('process');
 
 /**
  * This file is to test the lazy loader retry functionality.
@@ -9,7 +8,7 @@ const { exit } = require('process');
  * the second request will return a 200, then shut down.
  */
 
-const lockFile = './file.txt';
+const lockFile = './retry_lockfile.txt';
 let server;
 
 function deleteLockfile() {
