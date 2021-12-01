@@ -147,14 +147,15 @@ describe('Lazy Loader Service', () => {
       });
     });
 
-    // this is verifying that when a bunch of concurrent requests for a script get
-    // made, that they all get their completion blocks called
+    // This is verifying that we emit an event on retry and failure.
+    // This allows the consumer to respond to these events with analytics handling
+    // anything else.
     it('Emits an event when a retry occurs or fails', async () => {
       const container = (await fixture(html` <div></div> `)) as HTMLElement;
       const lazyLoader = new LazyLoaderService({
         container,
         retryCount: 1,
-        retryInterval: 0.1,
+        retryInterval: 0.01,
       });
 
       let testRetryCount = 0;
@@ -164,13 +165,10 @@ describe('Lazy Loader Service', () => {
 
       let scriptLoadEventFired = false;
       let failedSrc: string | undefined;
-      lazyLoader.on(
-        'scriptLoadFailed',
-        (src: string, error: string | Event) => {
-          scriptLoadEventFired = true;
-          failedSrc = src;
-        }
-      );
+      lazyLoader.on('scriptLoadFailed', (src: string) => {
+        scriptLoadEventFired = true;
+        failedSrc = src;
+      });
 
       let retryFailed = false;
       try {
@@ -183,6 +181,22 @@ describe('Lazy Loader Service', () => {
       expect(scriptLoadEventFired).to.be.true;
       expect(failedSrc).to.equal('/base/test/blahblah.js');
       expect(retryFailed).to.be.true;
+    });
+
+    it('Retries the specified number of times', async () => {
+      const container = (await fixture(html` <div></div> `)) as HTMLElement;
+      const lazyLoader = new LazyLoaderService({
+        container,
+        retryCount: 5,
+        retryInterval: 0.01,
+      });
+
+      try {
+        await lazyLoader.loadScript({ src: '/base/test/blahblah.js' });
+      } catch {}
+
+      const scriptTags = container.querySelectorAll('script');
+      expect(scriptTags.length).to.equal(6);
     });
 
     /**
@@ -202,7 +216,7 @@ describe('Lazy Loader Service', () => {
       const lazyLoader = new LazyLoaderService({
         container,
         retryCount: 1,
-        retryInterval: 0.1,
+        retryInterval: 0.01,
       });
       await lazyLoader.loadScript({ src: serverUrl });
 
