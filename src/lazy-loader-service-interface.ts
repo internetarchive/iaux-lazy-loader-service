@@ -8,13 +8,13 @@ export interface LazyLoaderServiceEvents {
 
 export interface LazyLoaderServiceInterface {
   /**
-   * Bind to receive credit card flow handler events
+   * Bind to receive notifications about retry and failure events
    *
    * @template E
    * @param {E} event
-   * @param {CreditCardFlowHandlerEvents[E]} callback
+   * @param {LazyLoaderServiceEvents[E]} callback
    * @returns {Unsubscribe}
-   * @memberof CreditCardFlowHandlerInterface
+   * @memberof LazyLoaderServiceInterface
    */
   on<E extends keyof LazyLoaderServiceEvents>(
     event: E,
