@@ -183,6 +183,46 @@ describe('Lazy Loader Service', () => {
       expect(retryFailed).to.be.true;
     });
 
+    it('Emits the expected number of retry events', async () => {
+      const container = (await fixture(html` <div></div> `)) as HTMLElement;
+      const lazyLoader = new LazyLoaderService({
+        container,
+        retryCount: 4,
+        retryInterval: 0.01,
+      });
+
+      let retryEvents = 0;
+      lazyLoader.on('scriptLoadRetried', () => {
+        retryEvents += 1;
+      });
+
+      try {
+        await lazyLoader.loadScript({ src: '/base/test/blahblah.js' });
+      } catch {}
+
+      expect(retryEvents).to.equal(4);
+    });
+
+    it('Only emits a single failure event if there are multiple retry attempts', async () => {
+      const container = (await fixture(html` <div></div> `)) as HTMLElement;
+      const lazyLoader = new LazyLoaderService({
+        container,
+        retryCount: 4,
+        retryInterval: 0.01,
+      });
+
+      let failureEvents = 0;
+      lazyLoader.on('scriptLoadFailed', () => {
+        failureEvents += 1;
+      });
+
+      try {
+        await lazyLoader.loadScript({ src: '/base/test/blahblah.js' });
+      } catch {}
+
+      expect(failureEvents).to.equal(1);
+    });
+
     it('Retries the specified number of times', async () => {
       const container = (await fixture(html` <div></div> `)) as HTMLElement;
       const lazyLoader = new LazyLoaderService({

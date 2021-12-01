@@ -147,7 +147,12 @@ export class LazyLoaderService implements LazyLoaderServiceInterface {
             scriptBeingRetried: script,
           });
         } else {
-          this.emitter.emit('scriptLoadFailed', options.src, error);
+          // only emit a failure event from the last attempt, which has not been retried.
+          // otherwise you get failure events from each script tag, when we're really
+          // only interested that the entire chain failed
+          if (!hasBeenRetried) {
+            this.emitter.emit('scriptLoadFailed', options.src, error);
+          }
           originalOnError?.(error);
           reject(error);
         }
