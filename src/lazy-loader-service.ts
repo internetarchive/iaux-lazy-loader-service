@@ -1,5 +1,9 @@
+import { createNanoEvents, Unsubscribe } from 'nanoevents';
 import type { BundleType } from './bundle-type';
-import { LazyLoaderServiceInterface } from './lazy-loader-service-interface';
+import {
+  LazyLoaderServiceEvents,
+  LazyLoaderServiceInterface,
+} from './lazy-loader-service-interface';
 import { promisedSleep } from './promised-sleep';
 
 export interface LazyLoaderServiceOptions {
@@ -29,6 +33,9 @@ export class LazyLoaderService implements LazyLoaderServiceInterface {
   // the retry interval in seconds
   private retryInterval: number;
 
+  // the emitter for consumers to listen for events like retrying a load
+  private emitter = createNanoEvents<LazyLoaderServiceEvents>();
+
   /**
    * LazyLoaderService constructor
    *
@@ -38,6 +45,14 @@ export class LazyLoaderService implements LazyLoaderServiceInterface {
     this.container = options?.container ?? document.head;
     this.retryCount = options?.retryCount ?? 2;
     this.retryInterval = options?.retryInterval ?? 1;
+  }
+
+  /** @inheritdoc */
+  on<E extends keyof LazyLoaderServiceEvents>(
+    event: E,
+    callback: LazyLoaderServiceEvents[E]
+  ): Unsubscribe {
+    return this.emitter.on(event, callback);
   }
 
   /** @inheritdoc */
@@ -124,12 +139,15 @@ export class LazyLoaderService implements LazyLoaderServiceInterface {
         if (retryCount < this.retryCount && !hasBeenRetried) {
           script.setAttribute('hasBeenRetried', 'true');
           await promisedSleep(this.retryInterval * 1000);
+          const newRetryCount = retryCount + 1;
+          this.emitter.emit('scriptLoadRetried', options.src, newRetryCount);
           this.doLoad({
             ...options,
-            retryCount: retryCount + 1,
+            retryCount: newRetryCount,
             scriptBeingRetried: script,
           });
         } else {
+          this.emitter.emit('scriptLoadFailed', options.src, error);
           originalOnError?.(error);
           reject(error);
         }

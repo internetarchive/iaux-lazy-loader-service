@@ -1,6 +1,26 @@
 import { BundleType } from './bundle-type';
+import { Unsubscribe } from 'nanoevents';
+
+export interface LazyLoaderServiceEvents {
+  scriptLoadRetried: (src: string, retryCount: number) => void;
+  scriptLoadFailed: (src: string, error: string | Event) => void;
+}
 
 export interface LazyLoaderServiceInterface {
+  /**
+   * Bind to receive credit card flow handler events
+   *
+   * @template E
+   * @param {E} event
+   * @param {CreditCardFlowHandlerEvents[E]} callback
+   * @returns {Unsubscribe}
+   * @memberof CreditCardFlowHandlerInterface
+   */
+  on<E extends keyof LazyLoaderServiceEvents>(
+    event: E,
+    callback: LazyLoaderServiceEvents[E]
+  ): Unsubscribe;
+
   /**
    * Load a javascript bundle (module and nomodule pair)
    *

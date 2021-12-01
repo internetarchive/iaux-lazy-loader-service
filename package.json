@@ -60,5 +60,8 @@
       "prettier --write",
       "git add"
     ]
+  },
+  "dependencies": {
+    "nanoevents": "^6.0.2"
   }
 }

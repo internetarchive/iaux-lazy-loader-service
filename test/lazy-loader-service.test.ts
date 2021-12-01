@@ -147,6 +147,44 @@ describe('Lazy Loader Service', () => {
       });
     });
 
+    // this is verifying that when a bunch of concurrent requests for a script get
+    // made, that they all get their completion blocks called
+    it('Emits an event when a retry occurs or fails', async () => {
+      const container = (await fixture(html` <div></div> `)) as HTMLElement;
+      const lazyLoader = new LazyLoaderService({
+        container,
+        retryCount: 1,
+        retryInterval: 0.1,
+      });
+
+      let testRetryCount = 0;
+      lazyLoader.on('scriptLoadRetried', (src: string, retryCount: number) => {
+        testRetryCount = retryCount;
+      });
+
+      let scriptLoadEventFired = false;
+      let failedSrc: string | undefined;
+      lazyLoader.on(
+        'scriptLoadFailed',
+        (src: string, error: string | Event) => {
+          scriptLoadEventFired = true;
+          failedSrc = src;
+        }
+      );
+
+      let retryFailed = false;
+      try {
+        await lazyLoader.loadScript({ src: '/base/test/blahblah.js' });
+      } catch (err) {
+        retryFailed = true;
+      }
+
+      expect(testRetryCount).to.equal(1);
+      expect(scriptLoadEventFired).to.be.true;
+      expect(failedSrc).to.equal('/base/test/blahblah.js');
+      expect(retryFailed).to.be.true;
+    });
+
     /**
      * This is a special test that connects to a sidecar node server to test retrying a request.
      *
