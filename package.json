@@ -1,6 +1,6 @@
 {
   "name": "@internetarchive/lazy-loader-service",
-  "version": "0.1.0",
+  "version": "0.2.0-alpha.2",
   "description": "A small library to lazy load javascript with a Promise",
   "license": "AGPL-3.0-only",
   "main": "dist/index.js",
