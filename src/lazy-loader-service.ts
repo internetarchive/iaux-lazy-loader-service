@@ -6,6 +6,21 @@ import {
 } from './lazy-loader-service-interface';
 import { promisedSleep } from './promised-sleep';
 
+/**
+ * Attributes used to identify different script states
+ */
+enum ScriptTagAttributes {
+  retryNumber = 'retryNumber',
+  owner = 'owner',
+  dynamicImportLoaded = 'dynamicImportLoaded',
+  hasBeenRetried = 'hasBeenRetried',
+}
+
+/**
+ * Used to identify scripts loaded by the LazyLoaderService
+ */
+const scriptOwnerName = 'lazyLoaderService';
+
 export interface LazyLoaderServiceOptions {
   /**
    * The HTMLElement in which we put the script tags, defaults to document.head
@@ -99,18 +114,18 @@ export class LazyLoaderService implements LazyLoaderServiceInterface {
     scriptBeingRetried?: HTMLScriptElement;
   }): Promise<void> {
     const retryNumber = options.retryNumber ?? 0;
-    const scriptSelector = `script[src='${options.src}'][async][retryCount='${retryNumber}']`;
+    const scriptSelector = `script[src='${options.src}'][async][${ScriptTagAttributes.owner}='${scriptOwnerName}'][${ScriptTagAttributes.retryNumber}='${retryNumber}']`;
     let script = this.container.querySelector(
       scriptSelector
     ) as HTMLScriptElement;
     if (!script) {
-      script = this.getScriptTag(options);
+      script = this.getScriptTag({ ...options, retryNumber });
       this.container.appendChild(script);
     }
 
     return new Promise((resolve, reject) => {
       // script has already been loaded, just resolve
-      if (script.getAttribute('dynamicImportLoaded')) {
+      if (script.getAttribute(ScriptTagAttributes.dynamicImportLoaded)) {
         resolve();
         return;
       }
@@ -127,7 +142,7 @@ export class LazyLoaderService implements LazyLoaderServiceInterface {
 
       script.onload = (event): void => {
         originalOnLoad?.(event);
-        script.setAttribute('dynamicImportLoaded', 'true');
+        script.setAttribute(ScriptTagAttributes.dynamicImportLoaded, 'true');
         resolve();
       };
 
@@ -135,9 +150,11 @@ export class LazyLoaderService implements LazyLoaderServiceInterface {
         script.onerror || scriptBeingRetried?.onerror;
 
       script.onerror = async (error): Promise<void> => {
-        const hasBeenRetried = script.getAttribute('hasBeenRetried');
+        const hasBeenRetried = script.getAttribute(
+          ScriptTagAttributes.hasBeenRetried
+        );
         if (retryNumber < this.retryCount && !hasBeenRetried) {
-          script.setAttribute('hasBeenRetried', 'true');
+          script.setAttribute(ScriptTagAttributes.hasBeenRetried, 'true');
           await promisedSleep(this.retryInterval * 1000);
           const newRetryNumber = retryNumber + 1;
           this.emitter.emit('scriptLoadRetried', options.src, newRetryNumber);
@@ -168,15 +185,19 @@ export class LazyLoaderService implements LazyLoaderServiceInterface {
    */
   private getScriptTag(options: {
     src: string;
-    retryCount?: number;
+    retryNumber: number;
     bundleType?: BundleType;
     attributes?: Record<string, string>;
   }): HTMLScriptElement {
     const fixedSrc = options.src.replace("'", '"');
     const script = document.createElement('script') as HTMLScriptElement;
-    const retryCount = options.retryCount ?? 0;
+    const retryNumber = options.retryNumber;
+    script.setAttribute(ScriptTagAttributes.owner, scriptOwnerName);
     script.setAttribute('src', fixedSrc);
-    script.setAttribute('retryCount', retryCount.toString());
+    script.setAttribute(
+      ScriptTagAttributes.retryNumber,
+      retryNumber.toString()
+    );
     script.async = true;
 
     const attributes = options.attributes ?? {};
