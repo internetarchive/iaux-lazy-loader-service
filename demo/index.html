@@ -35,6 +35,11 @@
       div.innerHTML = response;
     }
 
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        async function loadScriptFailure() {
+          await lazyLoaderService.loadScript({ src: 'blahblah.js' });
+        }
+
     render(
       html`
         <h1>Lazy Loader Service</h1>
@@ -45,10 +50,15 @@
           window.someLibrary.foo();
         </pre>
         <center>
+          <h2>Success</h2>
           <button @click=${loadScript}>Lazy Load Script</button>
           <p>(inspect the page head tag before and after pushing this)</p>
           <div>Response:</div>
           <div id="lazy-response"></div>
+
+          <h2>Failure</h2>
+          <button @click=${loadScriptFailure}>Lazy Load Failure</button>
+          <p>Inspect the page head tag and network panel before and after pushing this. You should see a three script tags and three network failures.</p>
         </center>
       `,
       document.querySelector('#demo')

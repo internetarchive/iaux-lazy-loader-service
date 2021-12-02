@@ -1,6 +1,26 @@
 import { BundleType } from './bundle-type';
+import { Unsubscribe } from 'nanoevents';
+
+export interface LazyLoaderServiceEvents {
+  scriptLoadRetried: (src: string, retryNumber: number) => void;
+  scriptLoadFailed: (src: string, error: string | Event) => void;
+}
 
 export interface LazyLoaderServiceInterface {
+  /**
+   * Bind to receive notifications about retry and failure events
+   *
+   * @template E
+   * @param {E} event
+   * @param {LazyLoaderServiceEvents[E]} callback
+   * @returns {Unsubscribe}
+   * @memberof LazyLoaderServiceInterface
+   */
+  on<E extends keyof LazyLoaderServiceEvents>(
+    event: E,
+    callback: LazyLoaderServiceEvents[E]
+  ): Unsubscribe;
+
   /**
    * Load a javascript bundle (module and nomodule pair)
    *
@@ -13,10 +33,7 @@ export interface LazyLoaderServiceInterface {
    *
    * @param bundle
    */
-  loadBundle(bundle: {
-    module?: string;
-    nomodule?: string;
-  }): Promise<Event | undefined>;
+  loadBundle(bundle: { module?: string; nomodule?: string }): Promise<void>;
 
   /**
    * Load a script with a Promise
@@ -34,6 +51,6 @@ export interface LazyLoaderServiceInterface {
     src: string;
     bundleType?: BundleType;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    attributes?: { key: string; value: any }[];
-  }): Promise<Event | undefined>;
+    attributes?: Record<string, string>;
+  }): Promise<void>;
 }
