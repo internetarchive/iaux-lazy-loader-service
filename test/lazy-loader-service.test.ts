@@ -258,14 +258,37 @@ describe('Lazy Loader Service', () => {
         retryCount: 1,
         retryInterval: 0.01,
       });
-      await lazyLoader.loadScript({ src: serverUrl });
+      let testRetryCount = 0;
+      lazyLoader.on('scriptLoadRetried', () => {
+        testRetryCount += 1;
+      });
+
+      let testFailedCount = 0;
+      lazyLoader.on('scriptLoadFailed', () => {
+        testFailedCount += 1;
+      });
+
+      // make multiple simultaneous loads of the URL to verify we only end up
+      // with one retry event
+      const promises = [
+        lazyLoader.loadScript({ src: serverUrl }),
+        lazyLoader.loadScript({ src: serverUrl }),
+        lazyLoader.loadScript({ src: serverUrl }),
+      ];
+
+      await Promise.all(promises);
 
       // verify we have two script tags with the expected url and a propery retryCount on each
       const scriptTags = container.querySelectorAll('script');
+      expect(scriptTags.length).to.equal(2);
+
       scriptTags.forEach((tag, index) => {
         expect(tag.src).to.equal(serverUrl);
         expect(tag.getAttribute('retryCount'), `${index}`);
       });
+
+      expect(testRetryCount).to.equal(1);
+      expect(testFailedCount).to.equal(0);
 
       // verify the final load actually loaded the service
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

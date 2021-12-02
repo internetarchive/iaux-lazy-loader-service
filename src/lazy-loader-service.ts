@@ -95,11 +95,11 @@ export class LazyLoaderService implements LazyLoaderServiceInterface {
     src: string;
     bundleType?: BundleType;
     attributes?: Record<string, string>;
-    retryCount?: number;
+    retryNumber?: number;
     scriptBeingRetried?: HTMLScriptElement;
   }): Promise<void> {
-    const retryCount = options.retryCount ?? 0;
-    const scriptSelector = `script[src='${options.src}'][async][retryCount='${retryCount}']`;
+    const retryNumber = options.retryNumber ?? 0;
+    const scriptSelector = `script[src='${options.src}'][async][retryCount='${retryNumber}']`;
     let script = this.container.querySelector(
       scriptSelector
     ) as HTMLScriptElement;
@@ -136,14 +136,14 @@ export class LazyLoaderService implements LazyLoaderServiceInterface {
 
       script.onerror = async (error): Promise<void> => {
         const hasBeenRetried = script.getAttribute('hasBeenRetried');
-        if (retryCount < this.retryCount && !hasBeenRetried) {
+        if (retryNumber < this.retryCount && !hasBeenRetried) {
           script.setAttribute('hasBeenRetried', 'true');
           await promisedSleep(this.retryInterval * 1000);
-          const newRetryCount = retryCount + 1;
-          this.emitter.emit('scriptLoadRetried', options.src, newRetryCount);
+          const newRetryNumber = retryNumber + 1;
+          this.emitter.emit('scriptLoadRetried', options.src, newRetryNumber);
           this.doLoad({
             ...options,
-            retryCount: newRetryCount,
+            retryNumber: newRetryNumber,
             scriptBeingRetried: script,
           });
         } else {

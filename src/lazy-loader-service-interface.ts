@@ -2,7 +2,7 @@ import { BundleType } from './bundle-type';
 import { Unsubscribe } from 'nanoevents';
 
 export interface LazyLoaderServiceEvents {
-  scriptLoadRetried: (src: string, retryCount: number) => void;
+  scriptLoadRetried: (src: string, retryNumber: number) => void;
   scriptLoadFailed: (src: string, error: string | Event) => void;
 }
 
