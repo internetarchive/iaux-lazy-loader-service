@@ -2,6 +2,8 @@
 
 # Lazy Loader Service
 
+> Moved to [@internetarchive/elements](https://github.com/internetarchive/elements) (`src/services/lazy-loader-service`). New work goes there.
+
 An ES module to lazy load javascript. Based on the lazy loader from [Vaadin Router](https://github.com/vaadin/vaadin-router).
 
 ## Installation
